@@ -23,8 +23,8 @@ class FileManager {
     return await Directory("$_workingPath/$name").exists();
   }
 
-  Future<List<File>> getDirectoryFiles(String name) async {
-    List<File> files = (await Directory("$_workingPath/$name").list().toList())
+  Future<List<File>> getDirectoryFiles() async {
+    List<File> files = (await Directory("$_workingPath/./").list().toList())
         .whereType<File>()
         .toList();
     return files;

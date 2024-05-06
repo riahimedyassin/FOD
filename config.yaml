@@ -1,7 +1,11 @@
-- documents:
-    - txt
-    - pdf
-- images:
-    - png
-    - jpg
-    - jpeg
+# Directories and files that should placed in config file.
+# You can change that manually or through the CLI tool using the cammand : (To be added later)
+
+documents:
+  - txt
+  - pdf
+  - rar
+images:
+  - png
+  - jpg
+  - jpeg
