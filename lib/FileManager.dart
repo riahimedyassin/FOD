@@ -1,9 +1,12 @@
 import 'dart:io';
 
 class FileManager {
-  FileManager();
+  String _workingPath = "./";
+  FileManager(String value) {
+    _workingPath = value;
+  }
   Future createFolder(String foldername) async {
-    Directory dir = Directory(foldername);
+    Directory dir = Directory("$_workingPath/$foldername");
     if (!await isFolder(foldername)) {
       try {
         var newDirectory = await dir.create();
@@ -17,12 +20,13 @@ class FileManager {
   }
 
   Future<bool> isFolder(String name) async {
-    return await Directory(name).exists();
+    return await Directory("$_workingPath/$name").exists();
   }
 
   Future<List<File>> getDirectoryFiles(String name) async {
-    List<File> files =
-        (await Directory(name).list().toList()).whereType<File>().toList();
+    List<File> files = (await Directory("$_workingPath/$name").list().toList())
+        .whereType<File>()
+        .toList();
     return files;
   }
 
@@ -62,11 +66,16 @@ class FileManager {
   }
 
   Future<bool> moveFilesToDirectory(Map<Directory, List<File>> values) async {
-    values.forEach((directory, files) {
-      for (File file in files) {
-        file.copy("./${directory.path}/${file.path}");
-      }
-    });
-    return true;
+    try {
+      values.forEach((directory, files) {
+        files.forEach((file) async {
+          await file.copy("${directory.path}/${file.path.split("/")[2]}");
+          await file.delete();
+        });
+      });
+      return true;
+    } on Exception {
+      return false;
+    }
   }
 }
