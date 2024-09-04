@@ -1,34 +1,21 @@
 import 'dart:io';
 import 'package:yaml/yaml.dart';
 
+import '../utils/yaml.parser.dart';
+
 class ConfigManager {
   Map<String, List<String>> _configuration = {};
+  final YamlParser _yamlParser = YamlParser();
   ConfigManager();
   Future<Map<String, List<String>>> _loadConfig() async {
     if (_configuration.isEmpty) {
       File configFile = File("./config.yaml");
       var res = await configFile.readAsString();
       var yamlRes = (await loadYaml(res)) as YamlMap;
-      final dartMap = _convertYamlMapToMap(yamlRes);
+      final dartMap = _yamlParser.parse(yamlRes);
       _configuration = dartMap;
     }
     return _configuration;
-  }
-
-  Map<String, List<String>> _convertYamlMapToMap(YamlMap yamlMap) {
-    final dartMap = <String, List<String>>{};
-    yamlMap.forEach((key, value) {
-      dartMap[key.toString()] = _convertYamlValue(value);
-    });
-    return dartMap;
-  }
-
-  List<String> _convertYamlValue(dynamic value) {
-    if (value is YamlList) {
-      return value.map((item) => item.toString()).toList();
-    } else {
-      return [value.toString()];
-    }
   }
 
   Future<List<String>> getConfigDirectories() async {

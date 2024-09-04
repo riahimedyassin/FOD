@@ -1,5 +1,5 @@
 import 'package:dcli/dcli.dart';
-import 'package:main/Bootstrap.dart';
+import '../core/bootstrap.dart';
 
 
 void main(List<String> arguments) async {

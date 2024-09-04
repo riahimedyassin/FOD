@@ -36,7 +36,7 @@ class FileManager {
       String extension = file.toString().split(".")[2].replaceAll('\'', "");
       if (result.containsKey(extension)) {
         result.update(extension, (value) {
-          value.add(file);
+          value.add(file) ; 
           return value;
         });
       } else {

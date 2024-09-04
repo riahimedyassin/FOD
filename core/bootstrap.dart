@@ -1,7 +1,7 @@
 import 'dart:io';
 
-import 'package:main/ConfigManager.dart';
-import 'package:main/FileManager.dart';
+import 'config_manager.dart';
+import 'file_manager.dart';
 
 class Bootstrap {
   late String path;
