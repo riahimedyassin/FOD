@@ -1,26 +1,18 @@
+import 'dart:async';
 import 'dart:io';
 
+import '../types/config_types.dart';
+import '../utils/file_system.dart';
+import 'config_manager.dart';
+
 class FileManager {
-  String _workingPath = "./";
+  late String _workingPath;
+  late FileSystem _fileSystem;
+  late ConfigManager _configManager;
   FileManager(String value) {
     _workingPath = value;
-  }
-  Future createFolder(String foldername) async {
-    Directory dir = Directory("$_workingPath/$foldername");
-    if (!await isFolder(foldername)) {
-      try {
-        var newDirectory = await dir.create();
-        return newDirectory;
-      } on Exception {
-        print("Cannot create directory");
-        return Null;
-      }
-    }
-    return dir;
-  }
-
-  Future<bool> isFolder(String name) async {
-    return await Directory("$_workingPath/$name").exists();
+    _fileSystem = FileSystem();
+    _configManager = ConfigManager();
   }
 
   Future<List<File>> getDirectoryFiles() async {
@@ -30,27 +22,11 @@ class FileManager {
     return files;
   }
 
-  filterByExtension(List<File> files) {
-    Map<String, List<File>> result = {};
-    for (File file in files) {
-      String extension = file.toString().split(".")[2].replaceAll('\'', "");
-      if (result.containsKey(extension)) {
-        result.update(extension, (value) {
-          value.add(file) ; 
-          return value;
-        });
-      } else {
-        result[extension] = [file];
-      }
-    }
-    return result;
-  }
-
-  Map<Directory, List<File>> arangeFilesToDirectories(
-    Map<String, List<File>> filteredFiles,
-    Map<Directory, List<String>> constaint,
+  DirectoryFiles arangeFilesToDirectories(
+    ExtensionFiles filteredFiles,
+    DirectoryExtensions constaint,
   ) {
-    Map<Directory, List<File>> result = {};
+    DirectoryFiles result = {};
     filteredFiles.forEach((key, value) {
       constaint.forEach((direct, extensions) {
         if (extensions.contains(key)) {
@@ -65,17 +41,29 @@ class FileManager {
     return result;
   }
 
-  Future<bool> moveFilesToDirectory(Map<Directory, List<File>> values) async {
-    try {
-      values.forEach((directory, files) {
-        files.forEach((file) async {
-          await file.copy("${directory.path}/${file.path.split("/")[2]}");
-          await file.delete();
-        });
-      });
-      return true;
-    } on Exception {
-      return false;
+  Future<DirectoryExtensions> getDirectoriesExtension(
+      List<String> directories) async {
+    DirectoryExtensions result = {};
+    for (String directory in directories) {
+      var local = await _fileSystem.createDirectory(_workingPath, directory);
+      result.addAll(
+          {local: await _configManager.getDirectoryExtensions(directory)});
     }
+    return result;
+  }
+
+  Future execute() async {
+    var directories = await _configManager.getConfigDirectories();
+    DirectoryExtensions directoriesByExtension =
+        await getDirectoriesExtension(directories);
+    List<File> directoryFiles = await getDirectoryFiles();
+    ExtensionFiles groupedFilesByExtension = _fileSystem.groupByExtension(
+      directoryFiles,
+    );
+    var arranged = arangeFilesToDirectories(
+      groupedFilesByExtension,
+      directoriesByExtension,
+    );
+    await _fileSystem.moveFilesToDirectories(arranged);
   }
 }
